@@ -1,10 +1,10 @@
     sudo apt update
     sudo apt install parted -y
-    # wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.3/amd64//llinux-headers-6.3.0-060300-generic_6.3.0-060300.202304232030_amd64.deb
-    # wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.3/amd64//linux-headers-6.3.0-060300_6.3.0-060300.202304232030_all.deb
-    # wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.3/amd64//linux-image-unsigned-6.3.0-060300-generic_6.3.0-060300.202304232030_amd64.deb
-    # wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.3/amd64/linux-modules-6.3.0-060300-generic_6.3.0-060300.202304232030_amd64.deb
-    # sudo dpkg -i *.deb
+    wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.3/amd64//llinux-headers-6.3.0-060300-generic_6.3.0-060300.202304232030_amd64.deb
+    wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.3/amd64//linux-headers-6.3.0-060300_6.3.0-060300.202304232030_all.deb
+    wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.3/amd64//linux-image-unsigned-6.3.0-060300-generic_6.3.0-060300.202304232030_amd64.deb
+    wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.3/amd64/linux-modules-6.3.0-060300-generic_6.3.0-060300.202304232030_amd64.deb
+    sudo dpkg -i *.deb
     echo "=====BUILD RAID0====="
     mdadm --zero-superblock /dev/sd{b,c}
     wipefs --all --force /dev/sd{b,c}
