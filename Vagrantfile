@@ -3,64 +3,27 @@
 
 VAGRANTFILE_API_VERSION = "2"
 
-MACHINES = {
-  :otus_zfs => {
-    :box_name => "otus-zfs",
-    :box => "criptobes3301/ubuntu-20.04",
-    :version => "1.0",
-    :disk => {
-      :disk2 => {
-        :dfile => '../disk-2.vdi',
-        :size => 1024, 
-        :port => 2
-      },
-      :disk3 => {
-        :dfile => '../disk-3.vdi',
-        :size => 1024, 
-        :port => 3
-      },
-      :disk4 => {
-        :dfile => '../disk-4.vdi',
-        :size => 1024, 
-        :port => 4
-      },
-      :disk5 => {
-        :dfile => '../disk-5.vdi',
-        :size => 1024, 
-        :port => 5
-      }
-
-    }
-
-  },
-
-}
-
-
-
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  MACHINES.each do |boxname, boxconfig|
-    config.vm.define boxname do |box|
-      box.vm.hostname = boxconfig[:box_name]
-      box.vm.box = boxconfig[:box]
-      box.vm.box_version = boxconfig[:version]
-      box.vm.network "public_network"
-      box.vm.provider :virtualbox do |vb|
-        vb.memory = "1024"
-        vb.cpus = 1
-        boxconfig[:disk].each do |dname, dconf|
-          vb.customize ['createhd', '--filename', dconf[:dfile], '--variant', 'Fixed', '--size', dconf[:size]]
-          vb.customize [ 'storageattach', 
-                :id, 
-                '--storagectl', 'SATA Controller', 
-                '--port', dconf[:port], 
-                '--device', 0, 
-                '--type', 'hdd', 
-                '--medium', dconf[:dfile]]
-        end     
-      end
+  config.vm.box = "criptobes3301/ubuntu-20.04"
+  config.vm.box_version = "1.0"
+  config.vm.define "server" do |server|
+    server.vm.network  "public_network", ip: "192.168.1.160"
+    server.vm.hostname = "otus-server-nfs"  
+    server.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
     end
+    server.vm.provision "shell", path:"./scriptnfs/createNFS.sh"
   end
-    config.vm.provision "shell", path: "./createZFS.sh"
 
+
+  config.vm.define "client" do |client|
+    client.vm.network "public_network", ip: "192.168.1.161"
+    client.vm.hostname = "otus-client-nfs"  
+    client.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+    end
+    client.vm.provision "shell", path:"./scriptnfs/nfsclient.sh"
+  end
 end
