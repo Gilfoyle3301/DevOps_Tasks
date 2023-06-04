@@ -14,5 +14,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         vb.cpus = 1
       end
     end
-    config.vm.provision "shell", path: "./scripts/buildNG.sh"
+    config.vm.provision "shell", path: "./scripts/runUnit.sh"
 end
