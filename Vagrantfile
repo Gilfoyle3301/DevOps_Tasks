@@ -24,6 +24,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.memory = "1024"
       vb.cpus = 1
     end
-    client.vm.provision "shell", path:"./scriptnfs/nfsclient.sh"
+    client.vm.provision "shell", path:"./scripts/nfsclient.sh"
   end
 end
