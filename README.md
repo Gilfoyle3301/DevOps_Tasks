@@ -1,346 +1,119 @@
-# Lesson 3-4
-
-## Исходная точка:
-
-### Vagrantfile, который создаст ВМ с 2 доп.дисками
-
-#### Выполняемые команды и вывод:
-#### Уменьшаем корневой раздел
-
-#### Создаем LV 
-
+## Загрузка системы
+### Попасть в систему без пароля несколькими способами
+#### /etc/default/grub
 ```
-vagrant@otus:~$ sudo -s
-root@otus:/home/vagrant# pvscan 
-  PV /dev/sda3   VG ubuntu-vg       lvm2 [<17.78 GiB / <7.78 GiB free]
-  Total: 1 [<17.78 GiB] / in use: 1 [<17.78 GiB] / in no VG: 0 [0   ]
-root@otus:/home/vagrant# pvcreate /dev/sd{b,c}
-  Physical volume "/dev/sdb" successfully created.
-  Physical volume "/dev/sdc" successfully created.
-root@otus:/home/vagrant# vgcreate vg_root /dev/sd{b,c}
-  Volume group "vg_root" successfully created
-root@otus:/home/vagrant# lvcreate -n lvroot -l 100%FREE vg_root
-  Logical volume "lvroot" created.
-root@otus:/home/vagrant# blkid 
-/dev/sda2: UUID="1923d2c9-801b-497c-afb2-917305464a79" TYPE="ext4" PARTUUID="d7534763-60d0-41f4-b860-131a1ad9bad6"
-/dev/sda3: UUID="kN99w0-ue9s-IE9D-tR0V-Rlq5-n7B4-UYxneR" TYPE="LVM2_member" PARTUUID="a669b806-85df-4ec7-851b-8cccbb4ecfe8"
-/dev/mapper/ubuntu--vg-ubuntu--lv: UUID="442cdf96-b951-403a-abd4-5c61efb900e9" TYPE="ext4"
-/dev/loop0: TYPE="squashfs"
-/dev/loop1: TYPE="squashfs"
-/dev/loop2: TYPE="squashfs"
-/dev/sda1: PARTUUID="af0a3b42-c18c-45b2-b12d-ecb7f638f4b2"
-/dev/sdb: UUID="PDF5DD-Hm5I-qlw4-26L7-Pbdc-5Glz-eazFzX" TYPE="LVM2_member"
-/dev/sdc: UUID="9HacTj-UJyk-mec6-prGS-na4T-q1AL-EkFSt3" TYPE="LVM2_member"
+...
+#   info -f grub -n 'Simple configuration'
+
+GRUB_DEFAULT=0
+#GRUB_TIMEOUT_STYLE=hidden
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+GRUB_CMDLINE_LINUX=""
+
+# Uncomment to enable BadRAM filtering, modify to suit your needs
+...
 ```
-#### Копируем корень в примотированный lvroot и меняем корень загрузки
-
 ```
-root@otus:/home/vagrant# mkfs.ext4 /dev/vg_root/lvroot 
-mke2fs 1.45.5 (07-Jan-2020)
-Creating filesystem with 2095104 4k blocks and 524288 inodes
-Filesystem UUID: 13c95e5c-a387-4033-ae54-63b714478e6c
-Superblock backups stored on blocks: 
-        32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632
-
-Allocating group tables: done                            
-Writing inode tables: done                            
-Creating journal (16384 blocks): done
-Writing superblocks and filesystem accounting information: done 
-
-root@otus:/home/vagrant# mount /dev/vg_root/lvroot /mnt
-root@otus:/home/vagrant# cp -ax / /mnt
-root@otus:/home/vagrant# ls /mnt/
-bin   dev  home  lib32  libx32      media  opt   root  sbin  srv       sys  usr      var
-boot  etc  lib   lib64  lost+found  mnt    proc  run   snap  swap.img  tmp  vagrant
-root@otus:/home/vagrant# for i in /proc/ /sys/ /dev/ /run/ /boot/; do mount --bind $i /mnt/$i; done
-root@otus:/home/vagrant# chroot /mnt
-root@otus:/# grub-mkconfig -o /boot/grub/grub.cfg 
+root@user-Standard-PC-Q35-ICH9-2009:/home/user# update-grub
 Sourcing file `/etc/default/grub'
 Sourcing file `/etc/default/grub.d/init-select.cfg'
 Generating grub configuration file ...
-Found linux image: /boot/vmlinuz-5.4.0-148-generic
-Found initrd image: /boot/initrd.img-5.4.0-148-generic
+Found linux image: /boot/vmlinuz-6.2.0-20-generic
+Found initrd image: /boot/initrd.img-6.2.0-20-generic
+Found memtest86+x64 image: /boot/memtest86+x64.bin
+Warning: os-prober will not be executed to detect other bootable partitions.
+Systems on them will not be added to the GRUB boot configuration.
+Check GRUB_DISABLE_OS_PROBER documentation entry.
 done
+```
+```
+1. 
+Перезагружаем компьютер.
+При входе в GRUB нажимаем клавишу «e» (редактировать).
+Заходим в строку ядра и вводим команду rw init = / bin / bash за линией, которая будет иметь вид
+
+menuentry 'Ubuntu' --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-simple-7ec4b8dd-5bdb-4bca-bfa8-cdccaad038a0' {
+        recordfail
+        load_video
+        gfxmode $linux_gfx_mode
+        insmod gzio
+        if [ x$grub_platform = xxen ]; then insmod xzio; insmod lzopio; fi
+        insmod part_gpt
+        insmod ext2
+        search --no-floppy --fs-uuid --set=root 7ec4b8dd-5bdb-4bca-bfa8-cdccaad038a0
+        linux   /boot/vmlinuz-6.2.0-20-generic root=UUID=7ec4b8dd-5bdb-4bca-bfa8-cdccaad038a0 rw  init=/bin/bash
+        initrd  /boot/initrd.img-6.2.0-20-generic
+}
+
+запускаем ctrl+x
+
+2.
+До нaчaлa зaгрузки оперaционной системы изменить пaрaметры зaгрузки ядрa в меню зaгрузчикa GRUB. Зaгрузить оперaционную систему в однопользовaтельском режиме (single-user mode). Зaдaть новый root-пaроль без вводa стaрого пaроля.
+
+menuentry 'Ubuntu' --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-simple-7ec4b8dd-5bdb-4bca-bfa8-cdccaad038a0' {
+        recordfail
+        load_video
+        gfxmode $linux_gfx_mode
+        insmod gzio
+        if [ x$grub_platform = xxen ]; then insmod xzio; insmod lzopio; fi
+        insmod part_gpt
+        insmod ext2
+        search --no-floppy --fs-uuid --set=root 7ec4b8dd-5bdb-4bca-bfa8-cdccaad038a0
+        linux   /boot/vmlinuz-6.2.0-20-generic root=UUID=7ec4b8dd-5bdb-4bca-bfa8-cdccaad038a0 rw single
+        initrd  /boot/initrd.img-6.2.0-20-generic
+}
+
+3.
+Примонтируйте линукс-рaздел комaндой sudo mount /dev/sda1 /media/linx_part. Измените рутa в примонтировaнном рaзделе — sudo chroot /media/sda1. Используйте passwd для изменения текущего пaроля нa новый. Reboot
+
+```
+
+### Установить систему с LVM, после чего переименовать VG
+```
+root@otus:/home/vagrant# vgs
+  VG        #PV #LV #SN Attr   VSize   VFree 
+  ubuntu-vg   1   1   0 wz--n- <17.78g <7.78g
+
+root@otus:/home/vagrant# vgrename ubuntu-vg otusfs-vg
+  Volume group "ubuntu-vg" successfully renamed to "otusfs-vg"
+
+меняем упоменания старого девайсмапа на новый
+ linux   /vmlinuz-5.4.0-148-generic root=/dev/mapper/otusfs--vg-ubuntu--lv ro single nomodeset dis_ucode_ldr ipv6.disable=1
+root@otus:/home/vagrant# mkinitramfs -v -o /boot/initramfs-$(uname -r).img $(uname -r)
+Copying module directory kernel/drivers/usb/host
+(excluding hwa-hc.ko sl811_cs.ko sl811-hcd.ko u132-hcd.ko whci-hcd.ko)
+Adding module /lib/modules/5.4.0-148-generic/kernel/drivers/usb/host/ehci-fsl.ko
+Adding module /lib/modules/5.4.0-148-generic/kernel/drivers/usb/host/oxu210hp-hcd.ko
+Adding module /lib/modules/5.4.0-148-generic/kernel/drivers/usb/host/max3421-hcd.ko
+Adding module /lib/modules/5.4.0-148-generic/kernel/drivers/usb/host/xhci-plat-hcd.ko
+Adding module /lib/modules/5.4.0-148-generic/kernel/drivers/usb/host/isp116x-hcd.ko
+Adding module /lib/modules/5.4.0-148-generic/kernel/drivers/ssb/ssb.ko
+Adding module /lib/modules/5.4.0-148-generic/kernel/drivers/usb/host/ssb-hcd.ko
+Adding module /lib/modules/5.4.0-148-generic/kernel/drivers/usb/host/fotg210-hcd.ko
+Adding module /lib/modules/5.4.0-148-generic/kernel/drivers/usb/host/r8a66597-hcd.ko
+Adding module /lib/modules/5.4.0-148-generic/kernel/drivers/bcma/bcma.ko
+...
 root@otus:/home/vagrant# reboot
-root@otus:/home/vagrant# df -h
-Filesystem                  Size  Used Avail Use% Mounted on
-udev                        444M     0  444M   0% /dev
-tmpfs                        98M  944K   97M   1% /run
-/dev/mapper/vg_root-lvroot  7.8G  7.0G  392M  95% /
-tmpfs                       489M     0  489M   0% /dev/shm
-tmpfs                       5.0M     0  5.0M   0% /run/lock
-tmpfs                       489M     0  489M   0% /sys/fs/cgroup
-/dev/loop0                   50M   50M     0 100% /snap/snapd/18357
-/dev/loop3                   64M   64M     0 100% /snap/core20/1891
-/dev/loop2                   92M   92M     0 100% /snap/lxd/24061
-/dev/loop1                   54M   54M     0 100% /snap/snapd/19122
-/dev/loop4                   64M   64M     0 100% /snap/core20/1828
-/dev/sda2                   1.7G  108M  1.5G   7% /boot
-tmpfs                        98M     0   98M   0% /run/user/1000
+
+vagrantÄotus:ü$ sudo vgs
+  VG      #PV #LV #SN Attr   VSize   VFree 
+  otus-vg   1   1   0 wz--n- <17.78g <7.78g
 ```
-### Изменяем размер предыдущего тома
-```
-root@otus:/home/vagrant# lsblk
-NAME                      MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-loop0                       7:0    0 49.9M  1 loop /snap/snapd/18357
-loop1                       7:1    0 53.2M  1 loop /snap/snapd/19122
-loop2                       7:2    0 91.9M  1 loop /snap/lxd/24061
-loop3                       7:3    0 63.5M  1 loop /snap/core20/1891
-loop4                       7:4    0 63.3M  1 loop /snap/core20/1828
-sda                         8:0    0 19.5G  0 disk 
-├─sda1                      8:1    0    1M  0 part 
-├─sda2                      8:2    0  1.8G  0 part /boot
-└─sda3                      8:3    0 17.8G  0 part 
-  └─ubuntu--vg-ubuntu--lv 253:1    0   10G  0 lvm  
-sdb                         8:16   0    4G  0 disk 
-└─vg_root-lvroot          253:0    0    8G  0 lvm  /
-sdc                         8:32   0    4G  0 disk 
-└─vg_root-lvroot          253:0    0    8G  0 lvm  /
-root@otus:/home/vagrant# fsck.ext4 /dev/ubuntu-vg/ubuntu-lv 
-e2fsck 1.45.5 (07-Jan-2020)
-/dev/ubuntu-vg/ubuntu-lv: clean, 70366/655360 files, 1230864/2621440 blocks
-root@otus:/home/vagrant# resize2fs -p /dev/ubuntu-vg/ubuntu-lv 8G
-resize2fs 1.45.5 (07-Jan-2020)
-Please run 'e2fsck -f /dev/ubuntu-vg/ubuntu-lv' first.
-
-root@otus:/home/vagrant# e2fsck -f /dev/ubuntu-vg/ubuntu-lv
-e2fsck 1.45.5 (07-Jan-2020)
-Pass 1: Checking inodes, blocks, and sizes
-Pass 2: Checking directory structure
-Pass 3: Checking directory connectivity
-Pass 4: Checking reference counts
-Pass 5: Checking group summary information
-/dev/ubuntu-vg/ubuntu-lv: 70366/655360 files (0.2% non-contiguous), 1230864/2621440 blocks
-
-root@otus:/home/vagrant# resize2fs -p /dev/ubuntu-vg/ubuntu-lv 8G
-resize2fs 1.45.5 (07-Jan-2020)
-Resizing the filesystem on /dev/ubuntu-vg/ubuntu-lv to 2097152 (4k) blocks.
-Begin pass 2 (max = 23)
-Relocating blocks             XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-Begin pass 3 (max = 80)
-Scanning inode table          XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-Begin pass 4 (max = 11140)
-Updating inode references     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-The filesystem on /dev/ubuntu-vg/ubuntu-lv is now 2097152 (4k) blocks long.
-
-root@otus:/home/vagrant# lvreduce --size 8G /dev/ubuntu-vg/ubuntu-lv 
-  WARNING: Reducing active logical volume to 8.00 GiB.
-  THIS MAY DESTROY YOUR DATA (filesystem etc.)
-Do you really want to reduce ubuntu-vg/ubuntu-lv? [y/n]: y
-  Size of logical volume ubuntu-vg/ubuntu-lv changed from 10.00 GiB (2560 extents) to 8.00 GiB (2048 extents).
-  Logical volume ubuntu-vg/ubuntu-lv successfully resized.
-
-root@otus:/home/vagrant# lsblk
-NAME                      MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-loop0                       7:0    0 49.9M  1 loop /snap/snapd/18357
-loop1                       7:1    0 53.2M  1 loop /snap/snapd/19122
-loop2                       7:2    0 91.9M  1 loop /snap/lxd/24061
-loop3                       7:3    0 63.5M  1 loop /snap/core20/1891
-loop4                       7:4    0 63.3M  1 loop /snap/core20/1828
-sda                         8:0    0 19.5G  0 disk 
-├─sda1                      8:1    0    1M  0 part 
-├─sda2                      8:2    0  1.8G  0 part /boot
-└─sda3                      8:3    0 17.8G  0 part 
-  └─ubuntu--vg-ubuntu--lv 253:1    0    8G  0 lvm  
-sdb                         8:16   0    4G  0 disk 
-└─vg_root-lvroot          253:0    0    8G  0 lvm  /
-sdc                         8:32   0    4G  0 disk 
-└─vg_root-lvroot          253:0    0    8G  0 lvm  /
-```
-### Возвращаем ФС на исходное место
-```
-root@otus:/home/vagrant# mkfs.ext4 /dev/ubuntu-vg/ubuntu-lv 
-mke2fs 1.45.5 (07-Jan-2020)
-/dev/ubuntu-vg/ubuntu-lv contains a ext4 file system
-        last mounted on / on Sun May 21 15:32:01 2023
-Proceed anyway? (y,N) y
-Creating filesystem with 2097152 4k blocks and 524288 inodes
-Filesystem UUID: ccbe4f06-946d-4ccf-9515-37bf3fb90a0a
-Superblock backups stored on blocks: 
-        32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632
-
-Allocating group tables: done                            
-Writing inode tables: done                            
-Creating journal (16384 blocks): done
-Writing superblocks and filesystem accounting information: done 
-
-root@otus:/home/vagrant# mount /dev/ubuntu-vg/ubuntu-lv /mnt/
-root@otus:/home/vagrant# cp -ax / /mnt
-root@otus:/home/vagrant# for i in /dev/ /proc/ /sys/ /boot/ /run/; do mount --bind $i /mnt$i; done
-root@otus:/home/vagrant# chroot /mnt/                
-root@otus:/# grub-mkconfig -o /boot/grub/grub.cfg
-Sourcing file `/etc/default/grub'
-Sourcing file `/etc/default/grub.d/init-select.cfg'
-Generating grub configuration file ...
-Found linux image: /boot/vmlinuz-5.4.0-148-generic
-Found initrd image: /boot/initrd.img-5.4.0-148-generic
-done
-root@otus:/# reboot
-vagrant@otus:~$ df -h
-Filesystem                         Size  Used Avail Use% Mounted on
-udev                               444M     0  444M   0% /dev
-tmpfs                               98M  952K   97M   1% /run
-/dev/mapper/ubuntu--vg-ubuntu--lv  7.8G  4.5G  3.0G  61% /
-tmpfs                              489M     0  489M   0% /dev/shm
-tmpfs                              5.0M     0  5.0M   0% /run/lock
-tmpfs                              489M     0  489M   0% /sys/fs/cgroup
-/dev/loop0                          50M   50M     0 100% /snap/snapd/18357
-/dev/loop3                          54M   54M     0 100% /snap/snapd/19122
-/dev/loop1                          64M   64M     0 100% /snap/core20/1891
-/dev/loop2                          92M   92M     0 100% /snap/lxd/24061
-/dev/loop4                          64M   64M     0 100% /snap/core20/1828
-/dev/sda2                          1.7G  108M  1.5G   7% /boot
-tmpfs                               98M     0   98M   0% /run/user/1000
-```
-
-### Создаем зеркало
+### Добавить модуль в initrd
 
 ```
-root@otus:/home/vagrant# pvcreate /dev/sd{b,c}
-  Physical volume "/dev/sdb" successfully created.
-  Physical volume "/dev/sdc" successfully created.
-root@otus:/home/vagrant# vgcreate vg_var /dev/sd{b,c}
-Volume group "vg_var" successfully created
-
-root@otus:/home/vagrant# lvcreate -n var_mirror -L 2G -m1 vg_var
-  Logical volume "var_mirror" created.
-root@otus:/home/vagrant# mkfs.ext4 /dev/vg_var/var_mirror 
-mke2fs 1.45.5 (07-Jan-2020)
-Creating filesystem with 524288 4k blocks and 131072 inodes
-Filesystem UUID: 3670074b-c34f-4597-a266-2732cca04003
-Superblock backups stored on blocks: 
-        32768, 98304, 163840, 229376, 294912
-
-Allocating group tables: done                            
-Writing inode tables: done                            
-Creating journal (16384 blocks): done
-Writing superblocks and filesystem accounting information: done 
-
-root@otus:/home/vagrant# mount /dev/vg_var/var_mirror /mnt
-root@otus:/home/vagrant# cp -aRx /var /mnt
-
-root@otus:/home/vagrant# umount /mnt/
-root@otus:/home/vagrant# mount /dev/vg_var/var_mirror /var
-root@otus:/home/vagrant# echo "`blkid | grep var: | awk '{print $2}'` /var ext4 defaults 0 0" >> /etc/fstab
-root@otus:/home/vagrant# lsblk
-NAME                         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-loop0                          7:0    0 91.9M  1 loop /snap/lxd/24061
-loop1                          7:1    0 63.3M  1 loop /snap/core20/1828
-loop2                          7:2    0 49.9M  1 loop /snap/snapd/18357
-loop3                          7:3    0 53.2M  1 loop /snap/snapd/19122
-loop4                          7:4    0 63.5M  1 loop /snap/core20/1891
-sda                            8:0    0 19.5G  0 disk 
-├─sda1                         8:1    0    1M  0 part 
-├─sda2                         8:2    0  1.8G  0 part /boot
-└─sda3                         8:3    0 17.8G  0 part 
-  └─ubuntu--vg-ubuntu--lv    253:0    0    8G  0 lvm  /
-sdb                            8:16   0    4G  0 disk 
-├─vg_var-var_mirror_rmeta_0  253:1    0    4M  0 lvm  
-│ └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-└─vg_var-var_mirror_rimage_0 253:2    0    2G  0 lvm  
-  └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-sdc                            8:32   0    4G  0 disk 
-├─vg_var-var_mirror_rmeta_1  253:3    0    4M  0 lvm  
-│ └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-└─vg_var-var_mirror_rimage_1 253:4    0    2G  0 lvm  
-  └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
+vagrantÄotus:ü$ mkdir /etc/initramfs-tools/scripts/01test 
+vagrantÄotus:ü$ sudo vim /usr/lib/dracut/modules.d/01test/module_setup.sh 
+vagrantÄotus:ü$ sudo vim /usr/lib/dracut/modules.d/01test/test.sh 
+vagrantÄotus:ü$ sudo update-initramfs -u
+vagrantÄotus:ü$ lsinitramfs -l /boot/initramfs-$(uname -r).img $(uname -r) ø grep test
+drwxr-xr-x   2 root     root            0 Jun  4 16:03 scripts/01test
+-rw-r--r--   1 root     root           75 Jun  4 16:03 scripts/01test/ORDER
+-rwxr-xr-x   1 root     root          251 Jun  4 15:58 scripts/01test/module_setup.sh
+-rwxr-xr-x   1 root     root          332 Jun  4 15:58 scripts/01test/test.sh
+-rwxr-xr-x  93 root     root            0 Nov 24  2021 usr/bin/test
+-rw-r--r--   1 root     root         8681 Apr 18 08:31 usr/lib/modules/5.4.0-148-generic/kernel/crypto/asymmetric_keys/pkcs7_test_key.ko
+-rw-r--r--   1 root     root        37217 Apr 18 08:31 usr/lib/modules/5.4.0-148-generic/kernel/drivers/spi/spi-loopback-test.ko
 ```
-
-### Делаем Snapshot
-```
-root@otus:/home/vagrant# vgcreate vg_home /dev/sdd
-  Volume group "vg_home" successfully created
-root@otus:/home/vagrant# lvcreate -n lv_home -l 100%FREE vg_home
-  Logical volume "lv_home" created.
-root@otus:/home/vagrant# mkfs.ext4 /dev/vg_home/lv_home 
-mke2fs 1.45.5 (07-Jan-2020)
-Creating filesystem with 1047552 4k blocks and 262144 inodes
-Filesystem UUID: d84114a3-2356-405a-a148-a503eab99f01
-Superblock backups stored on blocks: 
-        32768, 98304, 163840, 229376, 294912, 819200, 884736
-
-Allocating group tables: done                            
-Writing inode tables: done                            
-Creating journal (16384 blocks): done
-Writing superblocks and filesystem accounting information: done 
-
-root@otus:/home/vagrant# mount /dev/vg_home/lv_home /mnt
-root@otus:/home/vagrant# rsync /home/ /mnt
-skipping directory .
-root@otus:/home/vagrant# umount /mnt
-root@otus:/home/vagrant# mount /dev/vg_home/lv_home /home
-root@otus:/home/vagrant# touch /home/file{1..20}
-root@otus:/home/vagrant# ls /home/
-file1   file11  file13  file15  file17  file19  file20  file4  file6  file8  lost+found
-file10  file12  file14  file16  file18  file2   file3   file5  file7  file9
-root@otus:/home/vagrant# lsblk 
-NAME                         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-loop0                          7:0    0 91.9M  1 loop /snap/lxd/24061
-loop1                          7:1    0 63.3M  1 loop /snap/core20/1828
-loop2                          7:2    0 49.9M  1 loop /snap/snapd/18357
-loop3                          7:3    0 53.2M  1 loop /snap/snapd/19122
-loop4                          7:4    0 63.5M  1 loop /snap/core20/1891
-sda                            8:0    0 19.5G  0 disk 
-├─sda1                         8:1    0    1M  0 part 
-├─sda2                         8:2    0  1.8G  0 part /boot
-└─sda3                         8:3    0 17.8G  0 part 
-  └─ubuntu--vg-ubuntu--lv    253:0    0    8G  0 lvm  /
-sdb                            8:16   0    4G  0 disk 
-├─vg_var-var_mirror_rmeta_0  253:1    0    4M  0 lvm  
-│ └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-└─vg_var-var_mirror_rimage_0 253:2    0    2G  0 lvm  
-  └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-sdc                            8:32   0    4G  0 disk 
-├─vg_var-var_mirror_rmeta_1  253:3    0    4M  0 lvm  
-│ └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-└─vg_var-var_mirror_rimage_1 253:4    0    2G  0 lvm  
-  └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-sdd                            8:32   0    4G  0 disk 
-└─vg_home-lv_home            253:1    0    2G  0 lvm  /home
-root@otus:/home/vagrant# lvcreate -L 100MB -s -n home_snap /dev/vg_home/lv_home
-  Logical volume "home_snap" created.
-root@otus:/home/vagrant# lsblk
-NAME                         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-loop0                          7:0    0 91.9M  1 loop /snap/lxd/24061
-loop1                          7:1    0 63.3M  1 loop /snap/core20/1828
-loop2                          7:2    0 49.9M  1 loop /snap/snapd/18357
-loop3                          7:3    0 53.2M  1 loop /snap/snapd/19122
-loop4                          7:4    0 63.5M  1 loop /snap/core20/1891
-sda                            8:0    0 19.5G  0 disk 
-├─sda1                         8:1    0    1M  0 part 
-├─sda2                         8:2    0  1.8G  0 part /boot
-└─sda3                         8:3    0 17.8G  0 part 
-  └─ubuntu--vg-ubuntu--lv    253:0    0    8G  0 lvm  /
-sdb                            8:16   0    4G  0 disk 
-├─vg_var-var_mirror_rmeta_0  253:1    0    4M  0 lvm  
-│ └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-└─vg_var-var_mirror_rimage_0 253:2    0    2G  0 lvm  
-  └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-sdc                            8:32   0    4G  0 disk 
-├─vg_var-var_mirror_rmeta_1  253:3    0    4M  0 lvm  
-│ └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-└─vg_var-var_mirror_rimage_1 253:4    0    2G  0 lvm  
-  └─vg_var-var_mirror        253:5    0    2G  0 lvm  /var
-sdd                            8:32   0    4G  0 disk 
-├─vg_home-lv_home-real       253:2    0    2G  0 lvm  
-│ ├─vg_home-lv_home          253:1    0    2G  0 lvm  /home
-│ └─vg_home-home_snap        253:4    0    2G  0 lvm  
-└─vg_home-home_snap-cow      253:3    0  100M  0 lvm  
-  └─vg_home-home_snap        253:4    0    2G  0 lvm 
-```
-### Восстанавливаемся
-```
-root@otus:/home/vagrant#  rm -f /home/file{11..20}
-root@otus:/home/vagrant# ls /home/
-file1  file10  file2  file3  file4  file5  file6  file7  file8  file9  lost+found
-root@otus:/home/vagrant#  umount /home
-root@otus:/home/vagrant# lvconvert --merge /dev/vg_home/home_snap 
-  Merging of volume vg_home/home_snap started.
-  vg_home/lv_home: Merged: 100.00%
-root@otus:/home/vagrant# mount /dev/vg_home/lv_home /home/
-root@otus:/home/vagrant# ls /home/
-file1   file11  file13  file15  file17  file19  file20  file4  file6  file8  lost+found
-file10  file12  file14  file16  file18  file2   file3   file5  file7  file9
-root@otus:/home/vagrant# 
-```
-
