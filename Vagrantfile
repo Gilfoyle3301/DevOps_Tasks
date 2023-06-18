@@ -3,57 +3,27 @@
 
 VAGRANTFILE_API_VERSION = "2"
 
-MACHINES = {
-  :otus => {
-    :box_name => "otus",
-    :box => "criptobes3301/ubuntu-20.04",
-    :version => "1.0",
-    :disk => {
-      :disk2 => {
-        :dfile => '../disk-2.vdi',
-        :size => 4096, 
-        :port => 2
-      },
-      :disk3 => {
-        :dfile => '../disk-3.vdi',
-        :size => 4096, 
-        :port => 3
-      },
-      :disk4 => {
-        :dfile => '../disk-4.vdi',
-        :size => 4096, 
-        :port => 4
-      }
-
-    }
-
-  },
-
-}
-
-
-
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  MACHINES.each do |boxname, boxconfig|
-    config.vm.define boxname do |box|
-      box.vm.hostname = boxconfig[:box_name]
-      box.vm.box = boxconfig[:box]
-      box.vm.box_version = boxconfig[:version]
-      box.vm.network "public_network"
-      box.vm.provider :virtualbox do |vb|
+  config.vm.box = "criptobes3301/ubuntu-20.04"
+  config.vm.box_version = "1.0"
+  config.vm.define "admin" do |admin|
+    admin.vm.network  "public_network", ip: "192.168.1.160"
+    admin.vm.hostname = "otus-bilder-app"  
+    admin.vm.provider "virtualbox" do |vb|
         vb.memory = "1024"
         vb.cpus = 1
-        boxconfig[:disk].each do |dname, dconf|
-          vb.customize ['createhd', '--filename', dconf[:dfile], '--variant', 'Fixed', '--size', dconf[:size]]
-          vb.customize [ 'storageattach', 
-                :id, 
-                '--storagectl', 'SATA Controller', 
-                '--port', dconf[:port], 
-                '--device', 0, 
-                '--type', 'hdd', 
-                '--medium', dconf[:dfile]]
-        end     
       end
     end
-  end
+    config.vm.provision "file", source: "access.log", destination: "/tmp/access.log"
+    config.vm.provision "file", source: "error.log", destination: "/tmp/error.log"
+    config.vm.provision "file", source: "parse.sh", destination: "/home/vagrant/parse.sh"
+    config.vm.provision "shell", inline: <<-SHELL
+    sudo timedatectl set-ntp off
+    timedatectl set-time "2023-06-17 5:21:37"
+    sudo chmod 777 /etc/crontab
+    sudo echo "0 * * * *  /home/vagrant/parse.sh -xn /var/lock/parse.lock -c 'sh /home/vagrant/parse.sh'" >> /etc/crontab
+    sudo chmod 644 /etc/crontab
+    sudo apt update
+    sudo apt-get install mpack
+    SHELL
 end
