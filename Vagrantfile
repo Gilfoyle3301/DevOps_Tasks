@@ -24,6 +24,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     sudo echo "0 * * * *  /home/vagrant/parse.sh -xn /var/lock/parse.lock -c 'sh /home/vagrant/parse.sh'" >> /etc/crontab
     sudo chmod 644 /etc/crontab
     sudo apt update
-    sudo apt-get install mpack
     SHELL
 end
