@@ -1,5 +1,9 @@
 ```
-Скрипт выводит открыте файлы на основе информации из procfs.
-Формат вывода: process pid ppid u/f(user--->file)
+vagrant up - развернет 2 ВМ server/client
+после необходимо зайти на сервер vagrant ssh server и выполнитьь команду ansible-playbook app/main.yaml
+будет развернут nginx с кастомной конфигурацией и включен в автозагрузку
+
+vagrant@otus-client-nfs:~$ sudo systemctl list-unit-files --type=service --state=enabled | grep nginx
+nginx.service                          enabled enabled      
 ```
 
