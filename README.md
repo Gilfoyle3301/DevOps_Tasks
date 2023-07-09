@@ -495,9 +495,9 @@ nginx	1.0
 
 [root@selinux vagrant]# semodule -r nginx                                          
 libsemanage.semanage_direct_remove_key: Removing last nginx module (no other nginx module exists at another priority).
-
+```
 ## Задание №2
-
+```
 localadm@VBD:~/ansible/otus-linux-adm/selinux_dns_problems$ vagrant status
 Current machine states:
 
