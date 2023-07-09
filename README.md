@@ -1,4 +1,5 @@
 ## Задание №1
+```
 [root@selinux vagrant]# systemctl status firewalld
 ● firewalld.service - firewalld - dynamic firewall daemon
    Loaded: loaded (/usr/lib/systemd/system/firewalld.service; disabled; vendor preset: enabled)
@@ -678,3 +679,5 @@ ns01.dns.lab.		3600	IN	A	192.168.50.10
 ;; SERVER: 192.168.50.10#53(192.168.50.10)
 ;; WHEN: Wed Jul 05 13:58:34 UTC 2023
 ;; MSG SIZE  rcvd: 96
+
+```
