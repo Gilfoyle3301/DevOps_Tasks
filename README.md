@@ -681,3 +681,171 @@ ns01.dns.lab.		3600	IN	A	192.168.50.10
 ;; MSG SIZE  rcvd: 96
 
 ```
+## Задание 2 (Что делали\Причины)
+```
+
+Cмотрим тип категории, эта структура: "etc_t" неправильная и меняем тип : sudo chcon -R -t named_zone_t /etc/named
+
+[vagrant@ns01 ~]$ sudo su
+[root@ns01 vagrant]# ls -laZ /etc/named
+drw-rwx---. root named system_u:object_r:etc_t:s0       .
+drwxr-xr-x. root root  system_u:object_r:etc_t:s0       ..
+drw-rwx---. root named unconfined_u:object_r:etc_t:s0   dynamic
+-rw-rw----. root named system_u:object_r:etc_t:s0       named.50.168.192.rev
+-rw-rw----. root named system_u:object_r:etc_t:s0       named.dns.lab
+-rw-rw----. root named system_u:object_r:etc_t:s0       named.dns.lab.view1
+-rw-rw----. root named system_u:object_r:etc_t:s0       named.newdns.lab
+[root@ns01 vagrant]# cat /var/log/audit/audit.log | audit2why
+[root@ns01 vagrant]# sudo chcon -R -t named_zone_t /etc/named
+
+[root@ns01 vagrant]# ls -laZ /etc/named
+drw-rwx---. root named system_u:object_r:named_zone_t:s0 .
+drwxr-xr-x. root root  system_u:object_r:etc_t:s0       ..
+drw-rwx---. root named unconfined_u:object_r:named_zone_t:s0 dynamic
+-rw-rw----. root named system_u:object_r:named_zone_t:s0 named.50.168.192.rev
+-rw-rw----. root named system_u:object_r:named_zone_t:s0 named.dns.lab
+-rw-rw----. root named system_u:object_r:named_zone_t:s0 named.dns.lab.view1
+-rw-rw----. root named system_u:object_r:named_zone_t:s0 named.newdns.lab
+
+
+Вводим зону A для клиента
+
+[root@client ~]# nsupdate -k /etc/named.zonetransfer.key
+> server 192.168.50.10
+> zone ddns.lab
+> update add www.ddns.lab. 60 A 192.168.50.15
+> send
+>  quit 
+
+Проверяем демона DNS "systemctl status service named"
+
+named.service - Berkeley Internet Name Domain (DNS)
+   Loaded: loaded (/usr/lib/systemd/system/named.service; enabled; vendor preset: disabled)
+   Active: active (running) since Thu 2023-07-06 17:56:42 UTC; 8s ago
+  Process: 5493 ExecStop=/bin/sh -c /usr/sbin/rndc stop > /dev/null 2>&1 || /bin/kill -TERM $MAINPID (code=exited, status=0/SUCCESS)
+  Process: 5506 ExecStart=/usr/sbin/named -u named -c ${NAMEDCONF} $OPTIONS (code=exited, status=0/SUCCESS)
+  Process: 5504 ExecStartPre=/bin/bash -c if [ ! "$DISABLE_ZONE_CHECKING" == "yes" ]; then /usr/sbin/named-checkconf -z "$NAMEDCONF"; else echo "Checking of zone files is disabled"; fi (code=exited, status=0/SUCCESS)
+ Main PID: 5508 (named)
+   CGroup: /system.slice/named.service
+           └─5508 /usr/sbin/named -u named -c /etc/named.conf
+           
+           
+Смотрим полный журнал journalctl -u named
+
+Jul 06 17:10:18 ns01 named[5226]: managed-keys-zone/view1: Key 20326 for zone . acceptance timer complet
+Jul 06 17:10:18 ns01 named[5226]: resolver priming query complete
+Jul 06 17:10:18 ns01 named[5226]: managed-keys-zone/default: Key 20326 for zone . acceptance timer compl
+Jul 06 17:10:18 ns01 named[5226]: resolver priming query complete
+Jul 06 17:28:48 ns01 named[5226]: client @0x7f031003c3e0 192.168.50.15#39342/key zonetransfer.key: view 
+Jul 06 17:28:48 ns01 named[5226]: client @0x7f031003c3e0 192.168.50.15#39342/key zonetransfer.key: view 
+Jul 06 17:28:48 ns01 named[5226]: /etc/named/dynamic/named.ddns.lab.view1.jnl: create: permission denied
+Jul 06 17:28:48 ns01 named[5226]: client @0x7f031003c3e0 192.168.50.15#39342/key zonetransfer.key: view 
+
+Видим ошибку named.ddns.lab.view1.jnl: create: permission denied
+
+
+Так же в журнале находим еще одну ошибку, только permission deny. То есть файл не имеет разрешения. 
+Подключение клиента к этому серверу: client @0x7f031003c3e0 192.168.50.15#39342/key zonetransfer.key: view -its ok
+В данном случае нет проблем с соединениями, есть только разрешения.
+"/etc/named/dynamic", вероятнее всего, конфиг неправильного типа.
+
+Изменяем тип этой папки: sudo chcon -R -t named_zone_t /etc/named/dynamic и перезапустил службу named
+
+-rw-rw----. named named system_u:object_r:named_zone_t:s0 named.ddns.lab
+-rw-rw----. named named system_u:object_r:named_zone_t:s0 named.ddns.lab.view1
+
+Проблема устранена 
+
+● named.service - Berkeley Internet Name Domain (DNS)
+   Loaded: loaded (/usr/lib/systemd/system/named.service; enabled; vendor preset: disabled)
+   Active: active (running) since Thu 2023-07-06 17:56:42 UTC; 46s ago
+  Process: 5493 ExecStop=/bin/sh -c /usr/sbin/rndc stop > /dev/null 2>&1 || /bin/kill -TERM $MAINPID (code=exited, status=0/SUCCESS)
+  Process: 5506 ExecStart=/usr/sbin/named -u named -c ${NAMEDCONF} $OPTIONS (code=exited, status=0/SUCCESS)
+  Process: 5504 ExecStartPre=/bin/bash -c if [ ! "$DISABLE_ZONE_CHECKING" == "yes" ]; then /usr/sbin/named-checkconf -z "$NAMEDCONF"; else echo "Checking of zone files is disabled"; fi (code=exited, status=0/SUCCESS)
+ Main PID: 5508 (named)
+   CGroup: /system.slice/named.service
+           └─5508 /usr/sbin/named -u named -c /etc/named.conf
+
+Jul 06 17:56:42 ns01 named[5508]: network unreachable resolving './NS/IN': 2001:500:1::53#53
+Jul 06 17:56:42 ns01 named[5508]: network unreachable resolving './DNSKEY/IN': 2001:dc3::35#53
+Jul 06 17:56:42 ns01 named[5508]: network unreachable resolving './NS/IN': 2001:dc3::35#53
+Jul 06 17:56:42 ns01 named[5508]: network unreachable resolving './DNSKEY/IN': 2001:500:2::c#53
+Jul 06 17:56:42 ns01 named[5508]: network unreachable resolving './NS/IN': 2001:500:2::c#53
+Jul 06 17:56:42 ns01 named[5508]: managed-keys-zone/default: Key 20326 for zone . acceptance timer complete: key now trusted
+Jul 06 17:56:42 ns01 named[5508]: resolver priming query complete
+Jul 06 17:56:42 ns01 named[5508]: network unreachable resolving './DNSKEY/IN': 2001:500:2f::f#53
+Jul 06 17:56:42 ns01 named[5508]: managed-keys-zone/view1: Key 20326 for zone . acceptance timer complete: key now
+
+Проверяем: 
+
+nsupdate -k /etc/named.zonetransfer.key
+> server 192.168.50.10
+>  zone ddns.lab
+> update add www.ddns.lab. 60 A 192.168.50.15
+> send
+> quit
+its ok changes saved and work.
+
+
+[root@client ~]# dig www.ddns.lab
+; <<>> DiG 9.11.4-P2-RedHat-9.11.4-26.P2.el7_9.13 <<>> www.ddns.lab
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 28177
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;www.ddns.lab.			IN	A
+
+;; ANSWER SECTION:
+www.ddns.lab.		60	IN	A	192.168.50.15
+
+;; AUTHORITY SECTION:
+ddns.lab.		3600	IN	NS	ns01.dns.lab.
+
+;; ADDITIONAL SECTION:
+ns01.dns.lab.		3600	IN	A	192.168.50.10
+
+;; Query time: 0 msec
+;; SERVER: 192.168.50.10#53(192.168.50.10)
+;; WHEN: Thu Jul 06 18:02:22 UTC 2023
+;; MSG SIZE  rcvd: 96
+
+[root@client ~]# dig @192.168.50.10 www.ddns.lab
+
+; <<>> DiG 9.11.4-P2-RedHat-9.11.4-26.P2.el7_9.13 <<>> @192.168.50.10 www.ddns.lab
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 52950
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;www.ddns.lab.			IN	A
+
+;; ANSWER SECTION:
+www.ddns.lab.		60	IN	A	192.168.50.15
+
+;; AUTHORITY SECTION:
+ddns.lab.		3600	IN	NS	ns01.dns.lab.
+
+;; ADDITIONAL SECTION:
+ns01.dns.lab.		3600	IN	A	192.168.50.10
+
+;; Query time: 0 msec
+;; SERVER: 192.168.50.10#53(192.168.50.10)
+;; WHEN: Thu Jul 06 18:02:39 UTC 2023
+;; MSG SIZE  rcvd: 96
+
+// labs ddns zone
+    zone "ddns.lab" {
+        type master;
+        allow-transfer { key "zonetransfer.key"; };
+        allow-update { key "zonetransfer.key"; };
+        file "/etc/named/dynamic/named.ddns.lab";
+    };
+```
