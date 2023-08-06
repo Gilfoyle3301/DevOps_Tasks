@@ -1,15 +1,18 @@
 #!/bin/bash
-echo "THIS IS SERVER SCRIPT"
-sudo chmod 777 /etc/rsyslog.conf
-sudo sed -i 's/^#module(load="imtcp")/module(load="imtcp")/' /etc/rsyslog.conf
-sudo sed -i 's/^#input(type="imtcp" port="514")/input(type="imtcp" port="514")/' /etc/rsyslog.conf
-echo "\$AllowedSender TCP, 192.168.56.0/24, [::1]/128" >> /etc/rsyslog.conf
-echo "\$template RemInputLogs, \"/var/spool/rsyslog/%FROMHOST-IP%/%PROGRAMNAME%.log\"" >> /etc/rsyslog.conf
-echo "*.* ?RemInputLogs" >> /etc/rsyslog.conf
-sudo chmod 644 /etc/rsyslog.conf
-sudo systemctl restart rsyslog
 sudo apt update
-sudo apt-get install auditd audispd-plugins -y
-sudo sed -i 's/^##tcp_listen_port = 60/tcp_listen_port = 60/' /etc/audit/auditd.conf
-sudo systemctl restart auditd
+sudo apt install borgbackup -y
+sudo useradd -m borg -d /home/borg
+sudo mkfs.ext4 /dev/sdb
+sudo mkdir /var/backup
+sudo mount /dev/sdb /var/backup
+sudo rm -rf /var/backup/*
+sudo chown borg:borg /var/backup
+sudo mkdir /home/borg/.ssh
+sudo mv /home/vagrant/server_pair/* /home/borg/.ssh/
+sudo chmod 700 /home/borg/.ssh
+sudo chmod 600 /home/borg/.ssh/authorized_keys
+sudo chown -R borg:borg /home/borg/.ssh/
+
+
+
 
