@@ -9,7 +9,7 @@
 7. centralRouter может попасть на ssh inetrRouter через knock скрипт.
 
 ### Схема стенда
-![](https://github.com/Gilfoyle3301/otus/blob/main/pict/Screenshot%20from%202023-08-25%2012-39-14.png)
+![](https://github.com/Gilfoyle3301/otus/blob/iptables/pict/Screenshot%20from%202023-08-25%2012-39-14.png)
 
 # Реализация
 Разворачиваем стенд: \
@@ -18,9 +18,9 @@
 #### 1. Запустить nginx на centralServer.
 `ansible-playbook nginx-play.yml`
 
-![](https://github.com/Gilfoyle3301/otus/blob/main/pict/Screenshot%20from%202023-08-24%2017-55-17.png)
+![](https://github.com/Gilfoyle3301/otus/blob/iptables/pict/Screenshot%20from%202023-08-24%2017-55-17.png)
 
-![](https://github.com/Gilfoyle3301/otus/blob/main/pict/Screenshot%20from%202023-08-24%2017-55-52.png)
+![](https://github.com/Gilfoyle3301/otus/blob/iptables/pict/Screenshot%20from%202023-08-24%2017-55-52.png)
 
 ### 2. Проброс порта сайта
 #### Реализоано через provision при развертывании.
@@ -29,24 +29,24 @@
 - Пробросить 80й порт на inetRouter2 8080.
 - Реализовать проход на 80й порт без маскарадинга.
 ### Gateway через inetRouter
-![](https://github.com/Gilfoyle3301/otus/blob/main/pict/Screenshot%20from%202023-08-25%2017-34-09.png)
+![](https://github.com/Gilfoyle3301/otus/blob/iptables/pict/Screenshot%20from%202023-08-25%2017-34-09.png)
 ### iptables 
-![](https://github.com/Gilfoyle3301/otus/blob/main/pict/Screenshot%20from%202023-08-25%2012-59-05.png)
+![](https://github.com/Gilfoyle3301/otus/blob/iptables/pict/Screenshot%20from%202023-08-25%2012-59-05.png)
 ### Проброс порта на пограничном роутере inetRouter
 Можно сделать через `Vagrantfile` \
 `box.vm.network "forwarded_port", guest: 8080, host: 14725, host_ip: "127.0.0.1", id: "http"` \
 Использовал ручной проброс через GUI специально для наглядности, так понятнее, что происходит и как реализовано. \
 Имитация пограничного роутера.
 
-![](https://github.com/Gilfoyle3301/otus/blob/main/pict/Screenshot%20from%202023-08-25%2012-41-34.png)
+![](https://github.com/Gilfoyle3301/otus/blob/iptables/pict/Screenshot%20from%202023-08-25%2012-41-34.png)
 
 Как это выгледит с хостовой машины при запросе страницы сайта.
 
-![](https://github.com/Gilfoyle3301/otus/blob/main/pict/Screenshot%20from%202023-08-25%2010-16-40.png)
+![](https://github.com/Gilfoyle3301/otus/blob/iptables/pict/Screenshot%20from%202023-08-25%2010-16-40.png)
 
 А так на роутере при пересылке пакетов
 
-![](https://github.com/Gilfoyle3301/otus/blob/main/pict/Screenshot%20from%202023-08-25%2013-08-36.png)
+![](https://github.com/Gilfoyle3301/otus/blob/iptables/pict/Screenshot%20from%202023-08-25%2013-08-36.png)
 
 ### 3. Knocking port
 Выполнить роль: \
@@ -59,5 +59,5 @@
 
 Так отрабатывает скрипт и попытки входа на сервер. Логинимся с `office -> inetRouter`
 
-![](https://github.com/Gilfoyle3301/otus/blob/main/pict/Screenshot%20from%202023-08-25%2017-30-14.png)
+![](https://github.com/Gilfoyle3301/otus/blob/iptables/pict/Screenshot%20from%202023-08-25%2017-30-14.png)
 
