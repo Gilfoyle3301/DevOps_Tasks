@@ -1,6 +1,0 @@
----
-- hosts: knock-host
-  become:
-    true
-  roles:
-    - knock

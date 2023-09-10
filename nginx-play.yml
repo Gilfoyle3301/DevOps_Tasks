@@ -1,7 +1,0 @@
----
-- hosts: central
-  become:
-    true
-  roles:
-    - nginx
-

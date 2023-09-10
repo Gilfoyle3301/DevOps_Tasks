@@ -1,6 +1,0 @@
----
-- name: Install epel-relese
-  yum:
-    name: epel-release
-  when:
-    ansible_distribution == "CentOS"

@@ -6,105 +6,52 @@ ENV["LC_ALL"] = "en_US.UTF-8"
   # ========================================= InetRouter ========================================
 
 Vagrant.configure(2) do |config|
-    config.vm.define "inetRouter" do |server|
-    # имя виртуальной машины
-    server.vm.box = 'centos/7'
-    server.vm.box_version = '1804.02'
-    server.vm.provider "virtualbox" do |vb|
-      vb.name = "inetRouter"
+  config.vm.define "router1" do |router1|
+    router1.vm.box = "criptobes3301/ubuntu-20.04"
+    router1.vm.box_version = '1.0'
+    router1.vm.provider "virtualbox" do |vb|
+      vb.name = "Router1"
     end
-    # hostname виртуальной машины
-    server.vm.hostname = "inetRouter"
-    # настройки сети
-    server.vm.network "private_network", ip: "10.10.10.1", adapter: 2, netmask: "255.255.255.240", virtualbox__intnet: "router-net"
-    server.vm.network "private_network", ip: "192.168.56.254",adapter: 3, netmask: "255.255.255.0"
-    server.vm.synced_folder ".", "/vagrant",  
-          type: "rsync",
-          rsync_auto: "true",
-          rsync_exclude: [".git/",".vagrant/",".gitignore","Vagrantfile"]
-          server.vm.provision "shell", path: "provision/prepare-iroute.sh"
-    end
-
-  # ========================================= CentralRouter =====================================
-    config.vm.define "centralRouter" do |client|
-    # имя виртуальной машины
-    client.vm.box = 'centos/7'
-    client.vm.box_version = '1804.02' 
-    client.vm.provider "virtualbox" do |vbc|
-      vbc.name = "centralRouter"
-    end
-    # hostname виртуальной машины
-    client.vm.hostname = "centralRouter"
-    # настройки сети
-    client.vm.network "private_network", ip: "10.10.10.2", adapter: 2, netmask: "255.255.255.240", virtualbox__intnet: "router-net"
-    client.vm.network "private_network", ip: "192.168.70.2", adapter: 3, netmask: "255.255.255.0", virtualbox__intnet: "office"
-    client.vm.network "private_network", ip: "192.168.56.200",adapter: 4, netmask: "255.255.255.0"
-    client.vm.synced_folder ".", "/vagrant",  
-          type: "rsync",
-          rsync_auto: "true",
-          rsync_exclude: [".git/",".vagrant/",".gitignore","Vagrantfile"]
-          client.vm.provision "shell", path: "provision/prepare-croute.sh"
-# ssh-pub add in server
-  config.vm.provision "shell", inline: <<-SHELL
-  cat /vagrant/provision/vagrant-key.pub >> /home/vagrant/.ssh/authorized_keys
-  SHELL
-
-    end
+    router1.vm.hostname = "Router1"
+    router1.vm.network "private_network", ip: "10.0.10.1", adapter: 2, netmask: "255.255.255.252", virtualbox__intnet: "r1-r2"
+    router1.vm.network "private_network", ip: "10.0.12.1", adapter: 3, netmask: "255.255.255.252", virtualbox__intnet: "r1-r3"
+    router1.vm.network "private_network", ip: "192.168.10.1", adapter: 4, netmask: "255.255.255.0", virtualbox__intnet: "net1"
+    router1.vm.network "private_network", ip: "192.168.56.10", adapter: 5
+  end
 end
 
-  # ========================================= InetRouter2 ===================================================
-
-Vagrant.configure(2) do |iroute|
-    iroute.vm.define "inetRouter2" do |iroute|
-    # имя виртуальной машины
-    iroute.vm.box = 'centos/7'
-    iroute.vm.box_version = '1804.02'
-    iroute.vm.provider "virtualbox" do |vb|
-      vb.name = "inetRouter2"
+Vagrant.configure(2) do |config|
+  config.vm.define "router2" do |router2|
+    router2.vm.box = "criptobes3301/ubuntu-20.04"
+    router2.vm.box_version = '1.0'
+    router2.vm.provider "virtualbox" do |vb|
+      vb.name = "Router2"
     end
-    # hostname виртуальной машины
-    iroute.vm.hostname = "inetRouter2"
-    # настройки сети
-    iroute.vm.network "private_network", ip: "10.10.10.3", adapter: 2, netmask: "255.255.255.240", virtualbox__intnet: "router-net"
-    iroute.vm.network "private_network", ip: "192.168.56.253",adapter: 3, netmask: "255.255.255.0"
-    iroute.vm.synced_folder ".", "/vagrant",  
-          type: "rsync",
-          rsync_auto: "true",
-          rsync_exclude: [".git/",".vagrant/",".gitignore","Vagrantfile"]
-          iroute.vm.provision "shell", path: "provision/prepare-irouter2.sh"
-          iroute.vm.provision "shell", path: "provision/add-forward.sh"
-  # ssh-pub add in server
-    iroute.vm.provision "shell", inline: <<-SHELL
-    cat /vagrant/provision/vagrant-key.pub >> /home/vagrant/.ssh/authorized_keys
-    SHELL
-
-    end
+    router2.vm.hostname = "Router2"
+    router2.vm.network "private_network", ip: "10.0.10.2", adapter: 2, netmask: "255.255.255.252", virtualbox__intnet: "r1-r2"
+    router2.vm.network "private_network", ip: "10.0.11.2", adapter: 3, netmask: "255.255.255.252", virtualbox__intnet: "r2-r3"
+    router2.vm.network "private_network", ip: "192.168.20.1", adapter: 4, netmask: "255.255.255.0", virtualbox__intnet: "net2"
+    router2.vm.network "private_network", ip: "192.168.56.11", adapter: 5
+  end
 end
 
-# =========================================== Office ===================================================
-
-Vagrant.configure(2) do |office|
-    office.vm.define "office" do |office|
-    # имя виртуальной машины
-    office.vm.box = 'centos/7'
-    office.vm.box_version = '1804.02'
-    office.vm.provider "virtualbox" do |vb|
-      vb.name = "office"
+Vagrant.configure(2) do |config|
+  config.vm.define "router3" do |router3|
+    router3.vm.box = "criptobes3301/ubuntu-20.04"
+    router3.vm.box_version = '1.0'
+    router3.vm.provider "virtualbox" do |vb|
+      vb.name = "Router3"
     end
-    # hostname виртуальной машины
-    office.vm.hostname = "office"
-    # настройки сети
-    office.vm.network "private_network", ip: "192.168.56.50",adapter: 3, netmask: "255.255.255.0"
-    office.vm.network "private_network", ip: "192.168.70.10", adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "office"
-    office.vm.synced_folder ".", "/vagrant",  
-          type: "rsync",
-          rsync_auto: "true",
-          rsync_exclude: [".git/",".vagrant/",".gitignore","Vagrantfile"]
-          office.vm.provision "shell", path: "provision/prepare-office.sh"
-  # ssh-pub add in server
-    office.vm.provision "shell", inline: <<-SHELL
-    cat /vagrant/provision/vagrant-key.pub >> /home/vagrant/.ssh/authorized_keys
-    SHELL
-
+    router3.vm.provision "ansible" do |ansible|
+      ansible.playbook = "ansible/provision.yml"
+      ansible.inventory_path = "inventory/hosts"
+      ansible.host_key_checking = "false"
+      ansible.limit = "all"
     end
+    router3.vm.hostname = "Router3"
+    router3.vm.network "private_network", ip: "10.0.11.1", adapter: 2, netmask: "255.255.255.252", virtualbox__intnet: "r2-r3"
+    router3.vm.network "private_network", ip: "10.0.12.2", adapter: 3, netmask: "255.255.255.252", virtualbox__intnet: "r1-r3"
+    router3.vm.network "private_network", ip: "192.168.30.1", adapter: 4, netmask: "255.255.255.0", virtualbox__intnet: "net3"
+    router3.vm.network "private_network", ip: "192.168.56.12", adapter: 5
+  end
 end
