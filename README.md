@@ -1,7 +1,7 @@
 # OSPF
 
 ### Схема стенда
-![](https://github.com/Gilfoyle3301/otus/blob/ospf/pict/schema.png)
+![](https://github.com/Gilfoyle3301/otus/blob/ospf/image/schema.png)
 
 # Реализация
 Разворачиваем стенд: \
