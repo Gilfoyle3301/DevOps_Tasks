@@ -4,6 +4,16 @@ hostname {{ ansible_hostname }}
 log syslog informational
 service integrated-vtysh-config
 !
+interface enp0s8
+{% if ansible_hostname == "Router1"%}
+ ip ospf cost 1000
+{% elif ansible_hostname == 'router2' and symmetric_routing == true %}
+ ip ospf cost 1000
+{% else %}
+ !ip ospf cost 450
+{% endif %}
+exit
+!
 router ospf
 {% if ansible_hostname == "Router1" %}
  network {{ router1.network10 }} area 0

@@ -1,3 +1,4 @@
+symmetric_routing: false
 ospf:
   daemon:
     ospf: "yes"

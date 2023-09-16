@@ -11,6 +11,8 @@ Vagrant.configure(2) do |config|
     router1.vm.box_version = '1.0'
     router1.vm.provider "virtualbox" do |vb|
       vb.name = "Router1"
+      vb.memory = "1024"
+      vb.cpus = 1
     end
     router1.vm.hostname = "Router1"
     router1.vm.network "private_network", ip: "10.0.10.1", adapter: 2, netmask: "255.255.255.252", virtualbox__intnet: "r1-r2"
@@ -26,6 +28,8 @@ Vagrant.configure(2) do |config|
     router2.vm.box_version = '1.0'
     router2.vm.provider "virtualbox" do |vb|
       vb.name = "Router2"
+      vb.memory = "1024"
+      vb.cpus = 1
     end
     router2.vm.hostname = "Router2"
     router2.vm.network "private_network", ip: "10.0.10.2", adapter: 2, netmask: "255.255.255.252", virtualbox__intnet: "r1-r2"
@@ -41,6 +45,8 @@ Vagrant.configure(2) do |config|
     router3.vm.box_version = '1.0'
     router3.vm.provider "virtualbox" do |vb|
       vb.name = "Router3"
+      vb.memory = "1024"
+      vb.cpus = 1
     end
     router3.vm.provision "ansible" do |ansible|
       ansible.playbook = "ansible/provision.yml"
