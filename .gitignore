@@ -11,7 +11,7 @@ output-*/
 
 #
 node_modules/
-
+.gitignore
 #
 *~
 .DS_Store
