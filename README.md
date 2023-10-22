@@ -1,5 +1,5 @@
 # VLAN
-
+```
 System Requirements:
 MIN: 
     CPU: 7
@@ -7,6 +7,7 @@ MIN:
 NORMAL:
     CPU: 14
     RAM: 8GB
+```
 
 # Основные понятия
 
@@ -44,7 +45,7 @@ LACP (англ. link aggregation control protocol) — открытый стан
 # Промежуточные езультаты:
 Router bound:
 
-![](https://github.com/Gilfoyle3301/otus/blob/vlan/image/bound0.png)
+![](https://github.com/Gilfoyle3301/otus/blob/vlan/image/bond0.png)
 
 vlan1:
 
