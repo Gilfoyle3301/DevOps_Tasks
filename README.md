@@ -42,7 +42,7 @@ LACP (англ. link aggregation control protocol) — открытый стан
 2. ansible-playbook -i inventory/hosts inventory/playbook.yaml ```развернет настройки```
 
 
-# Промежуточные езультаты:
+# Промежуточные результаты:
 Router bound:
 
 ![](https://github.com/Gilfoyle3301/otus/blob/vlan/image/bond0.png)
