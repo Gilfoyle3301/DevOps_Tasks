@@ -1,37 +1,22 @@
-# -*- mode: ruby -*-
-# vim: set ft=ruby :
+Vagrant.configure(2) do |config|
 
-MACHINES = {
-    :ipa => {
-        :box_name => "generic/centos8",
-        :ip_addr => '192.168.50.10',
-        :cpus => 2,
-        :memory => 2048,
-    },
-    :client1 => {
-        :box_name => "generic/centos8",
-        :ip_addr => '192.168.50.11',
-        :cpus => 1,
-        :memory => 512,
-    },
-    :client2 => {
-        :box_name => "generic/centos8",
-        :ip_addr => '192.168.50.12',
-        :cpus => 1,
-        :memory => 512,
-    },
-}
+    config.vm.provision "ansible" do |ansible|
+       ansible.compatibility_mode = "2.0"
+       ansible.playbook = "ansible/prov.yml"
+     end
+  
+     config.vm.define "DynamicWeb" do |vmconfig| 
+      vmconfig.vm.box = 'criptobes3301/ubuntu-20.04'
+      vmconfig.vm.hostname = 'DynamicWeb'
 
-Vagrant.configure("2") do |config|
-  MACHINES.each do |boxname, boxconfig|
-      config.vm.define boxname do |box|
-          box.vm.box = boxconfig[:box_name]
-          box.vm.host_name = boxname.to_s + ".otus.lan"
-          box.vm.network "private_network", ip: boxconfig[:ip_addr]
-          box.vm.provider :virtualbox do |vb|
-            vb.memory = boxconfig[:memory]
-            vb.cpus = boxconfig[:cpus] 	        
-          end
+      vmconfig.vm.network "forwarded_port", guest: 8083, host: 8083
+      vmconfig.vm.network "forwarded_port", guest: 8081, host: 8081
+      vmconfig.vm.network "forwarded_port", guest: 8082, host: 8082
+      vmconfig.vm.provider "virtualbox" do |vbx|
+       vbx.memory = "2048"
+       vbx.cpus = "2"
+       vbx.customize ["modifyvm", :id, '--audio', 'none']
       end
+     end
+  
   end
-end
