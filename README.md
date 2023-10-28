@@ -1,61 +1,81 @@
-# VLAN
+# LDAP
+
 ```
-System Requirements:
-MIN: 
-    CPU: 7
-    RAM: 4GB
-NORMAL:
-    CPU: 14
-    RAM: 8GB
+vagrant up - Развернет и скофигурирует сервер ИПА и клиента.
 ```
 
-# Основные понятия
+## Настроить аутентификацию по SSH-ключам*
+Для этого нужно выполнить следующее:
+```
+[root@ipa ~]# sudo -i -u otus-user
+Creating home directory for otus-user.
+[otus-user@ipa ~]$ 
+[otus-user@ipa ~]$ 
+[otus-user@ipa ~]$ ssh-keygen -C otus-user@otus.lan
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/otus-user/.ssh/id_rsa): 
+Created directory '/home/otus-user/.ssh'.
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/otus-user/.ssh/id_rsa
+Your public key has been saved in /home/otus-user/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:5rdt5LpKrsMj56Jntk9kZviuesPHU0AR/elP35QOFCs otus-user@otus.lan
+The key's randomart image is:
++---[RSA 3072]----+
+|      o+         |
+|      . .    .   |
+|     .   . .  o  |
+|     ..   oE o   |
+|    . =.S.  o   .|
+|     * o. . o. ..|
+|   . oo.o .= .oo |
+|    XoOo . o+ ...|
+|  oBo@==o.++.    |
++----[SHA256]-----+
+[otus-user@ipa ~]$ klist
+klist: Credentials cache 'KCM:1718200003' not found
+[otus-user@ipa ~]$ kinit otus-user
+Password for otus-user@OTUS.LAN: 
+[otus-user@ipa ~]$ klist
+Ticket cache: KCM:1718200003
+Default principal: otus-user@OTUS.LAN
 
-VLAN (Virtual Local Area Network, виртуальная локальная компьютерная сеть) -  это виртуальные сети, которые работают на втором уровне модели OSI. Протокол VLAN разделяет хосты на подсети, путём добавления тэга к каждоум кадру (Протокол 802.1Q).
-
-1. Принцип работы VLAN:
-2. Группа устройств в сети VLAN взаимодействует так, будто устройства подключены с помощью одного кабеля…
-3. Преимущества использования VLAN:
-4. Безопасность
-5. Снижение издержек
-6. Повышение производительности (уменьшение лишнего трафика)
-7. Сокращение количества доменов широковещательной рассылки
-8. Повышение производительности ИТ-отдела
-
-Пакеты между VLAN могут передаваться только через маршрутизатор или коммутатор 3-го уровня. 
-
-Если через один порт требуется передавать сразу несколько VLAN`ов, то используются Trunk-порты.
-
-Помимо VLAN иногда требуется объединить несколько линков, это делается для увеличения отказоустойчивости. 
-Агрегирование каналов (англ. link aggregation) — технологии объединения нескольких параллельных каналов передачи данных в сетях Ethernet в один логический, позволяющие увеличить пропускную способность и повысить надёжность. В различных конкретных реализациях агрегирования используются альтернативные наименования: транкинг портов (англ. port trunking), связывание каналов (link bundling), склейка адаптеров (NIC bonding), сопряжение адаптеров (NIC teaming).
-
-LACP (англ. link aggregation control protocol) — открытый стандартный протокол агрегирования каналов, описанный в документах IEEE 802.3ad и IEEE 802.1aq.
-Главное преимущество агрегирования каналов в том, что потенциально повышается полоса пропускания: в идеальных условиях полоса может достичь суммы полос пропускания объединённых каналов. Другое преимущество — «горячее» резервирование линий связи: в случае отказа одного из агрегируемых каналов трафик без прерывания сервиса посылается через оставшиеся, а после восстановления отказавшего канала он автоматически включается в работу
-
-
-# Реализация
-
-Для развертывания:
-
-1. vagrant up ``` Поднимет стенд```
-
-2. ansible-playbook -i inventory/hosts inventory/playbook.yaml ```развернет настройки```
-
-
-# Промежуточные результаты:
-Router bound:
-
-![](https://github.com/Gilfoyle3301/otus/blob/vlan/image/bond0.png)
-
-vlan1:
-
-![](https://github.com/Gilfoyle3301/otus/blob/vlan/image/vlan1_ipa.png)
-
-![](https://github.com/Gilfoyle3301/otus/blob/vlan/image/vlan_s_c.png)
-
-
-vlan2:
-
-![](https://github.com/Gilfoyle3301/otus/blob/vlan/image/vlan2_ipa.png)
-
-![](https://github.com/Gilfoyle3301/otus/blob/vlan/image/vlan2_s_c.png)
+Valid starting     Expires            Service principal
+07/19/23 10:58:59  07/20/23 10:57:29  krbtgt/OTUS.LAN@OTUS.LAN
+[otus-user@ipa ~]$ ipa user-mod otus-user --sshpubkey="$(cat /home/otus-user/.ssh/id_rsa.pub)"
+-------------------------
+Modified user "otus-user"
+-------------------------
+  User login: otus-user
+  First name: Otus
+  Last name: User
+  Home directory: /home/otus-user
+  Login shell: /bin/sh
+  Principal name: otus-user@OTUS.LAN
+  Principal alias: otus-user@OTUS.LAN
+  Email address: otus-user@otus.lan
+  UID: 1718200003
+  GID: 1718200003
+  SSH public key: ssh-rsa
+                  AAAAB3NzaC1yc2EAAAADAQABAAABgQDTiMqpN/n40U6mxfJbdDW+QTE7uaXNEjalCQrEYZukWP2r+hBHA+922vKdhs2/5lNxSoQaWGhKVsLVB3Zli42cXJnpwH3qHTNdT5TJOTfnsfbAoClRuo2DSPJuRnx7gdOd758/JvQBbfYCJ2EB8mWJL11JIzbmkzhbnQzD9Z8lu1cT26hglEIZ99Z64+lcDeXpSniUrTJmdIyS0yQiKIhWQemb5AcfTdZMkBceoREJXATJUcT8xgm6w5tLkf//ODapJ52CXLnT5C4VzEAT3DHCoMHyBHiXO69gZoR5t4EtG7O+Oc/amzpXXRlwsVzNTJPEP9PKlD56L9Q5cGlwHiQC0dDPg5D9lNwmDhIg0AdFYbdDocGeCqZ0gUvCPn1GI63Hg2FlbnPKUpDfF+uDH4hba9cHfJ+kdENoKtkEKkaQ+nIDDGIyrBubWR4sNcgn8b0GXr0fmvwfFf38PPz2NExa+pzTFs+BrvdrhFprr0STr3OzFXrwCATJX01beB8QiAs=
+                  otus-user@otus.lan
+  SSH public key fingerprint: SHA256:5rdt5LpKrsMj56Jntk9kZviuesPHU0AR/elP35QOFCs otus-user@otus.lan (ssh-rsa)
+  Account disabled: False
+  Password: True
+  Member of groups: ipausers
+  Kerberos keys available: True
+[otus-user@ipa ~]$ ssh -o GSSAPIAuthentication=no 192.168.50.11
+The authenticity of host '192.168.50.11 (<no hostip for proxy command>)' can't be established.
+ED25519 key fingerprint is SHA256:mw+CTnBTCvP94mi+D4rmtDue3TXiSViKiv1fMBU4J1w.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '192.168.50.11' (ED25519) to the list of known hosts.
+[otus-user@client1 ~]$ 
+[otus-user@client1 ~]$ 
+[otus-user@client1 ~]$ su -
+Password: 
+[root@client1 ~]# journalctl -u sshd -S "5 minutes ago" --no-pager
+Jul 19 08:00:50 client1.otus.lan sshd[21618]: main: sshd: ssh-rsa algorithm is disabled
+Jul 19 08:00:55 client1.otus.lan sshd[21618]: Accepted publickey for otus-user from 192.168.50.10 port 35628 ssh2: RSA SHA256:5rdt5LpKrsMj56Jntk9kZviuesPHU0AR/elP35QOFCs
+```
