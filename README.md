@@ -1,37 +1,57 @@
-# PostgreSQL Replication
+# Networking
 
-## Homework
-Настроить репликацию
-- Настроить hot_standby репликацию с использованием слотов
-- Настроить правильное резервное копирование
+## Introduction
+1. [Homework](homework.md)
+1. [Theory](theory.md)
+1. [Network-diagram](network-diagram.png)
 
-Для сдачи присылаем postgresql.conf, pg_hba.conf и recovery.conf
-А так же конфиг barman, либо скрипт резервного копирования
+## Solution
 
-## Getting Started
-1. Setup environment
+### Before
+1. Please make sure that ports 2222, 8001-8005 are opened on your localhost
+    ```bash
+    ss -ltn
+    ```
+
+### Getting Started
+1. Run environment
     ```bash
     vagrant up
     ```
 
-## Check solution
-1. Check streaming
+1. Setup ssh tunnels (we need some handy way to connect to vms after removing eth0)
     ```bash
-    vagrant ssh backup -c 'sudo barman switch-wal --force --archive master.local'
+    ./host/setup-ssh-tunnels.sh
     ```
 
-1. Check barman configs
+1. Disable eth0 on vms
     ```bash
-    vagrant ssh backup -c 'sudo barman check master.local'
+    ./host/disable-all-if-eth0.sh
     ```
 
-1. Create test database
+### Check Results
+1. Connect to any vm
     ```bash
-    vagrant ssh master
-    sudo su postgres
-    psql
-    CREATE DATABASE "test";
-    \c test
-    CREATE TABLE users (id serial PRIMARY KEY, name VARCHAR (255) UNIQUE NOT NULL);
-    INSERT INTO users (name) values ('john');
+    ssh -i ~/.vagrant.d/insecure_private_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null vagrant@127.0.0.1 -p port
     ```
+
+    * ports mapping:
+        * centralRouter: 8001
+        * centralServer: 8002
+        * office1Router: 8003
+        * office1Server: 8004
+        * office2Router: 8005
+        * office2Server: 8006
+
+1. Check network settings and connectivity
+    ```bash
+    ip route
+    tracepath -n some-ip
+    ping some-internal-ip
+    ping some-external-ip
+    ```
+
+### After
+```bash
+vagrant destroy -f
+```
