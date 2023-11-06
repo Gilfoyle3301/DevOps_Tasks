@@ -1,0 +1,8 @@
+---
+- name: Setup nginx server
+  hosts: frontServer
+  become: True
+  gather_facts: False
+  roles:
+    - ../roles/nginx
+...

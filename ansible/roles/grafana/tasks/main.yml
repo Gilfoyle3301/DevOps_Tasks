@@ -1,0 +1,11 @@
+---
+- name: Copy binary file
+  copy:
+    dest: /tmp/grafana.deb
+    src: files/grafana-enterprise_10.0.3_amd64.deb
+  
+- name: install grafana package
+  apt:
+    deb: /tmp/grafana.deb
+  notify: restart grafana
+...

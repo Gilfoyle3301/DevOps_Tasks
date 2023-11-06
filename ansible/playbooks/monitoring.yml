@@ -1,0 +1,8 @@
+- name: Setup prometheus server and agent
+  hosts: monitoringServer
+  become: True
+  gather_facts: False
+  roles:
+    - ../roles/prometheus
+    - ../roles/prometheus-node-exporter
+    - ../roles/grafana

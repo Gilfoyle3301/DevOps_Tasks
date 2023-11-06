@@ -1,0 +1,38 @@
+- name: install nginx
+  yum:
+    name: nginx
+    state: present
+  notify: Restart Nginx
+
+- name: copy nginx certificate
+  copy:
+    src: 'files/etc/ssl'
+    dest: '/etc/nginx/'
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy nginx configuration files
+  copy:
+    src: 'files/etc/nginx/nginx.conf'
+    dest: '/etc/nginx/nginx.conf'
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart Nginx
+
+- name: copy web pages
+  copy:
+    src: files/var/www
+    dest: /var
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy resolv.conf to the client
+  copy: 
+    src: ../../dns/files/clients/client-resolv.conf 
+    dest: /etc/resolv.conf 
+    owner: root 
+    group: root 
+    mode: 0644

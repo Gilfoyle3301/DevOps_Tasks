@@ -1,0 +1,41 @@
+- name: install packages
+  apt:
+    name:
+      - bind9
+      - bind9-utils
+      - dnsutils
+      - ntp
+    state: present
+    update_cache: true
+
+
+- name: copy resolv.conf to the servers
+  copy: 
+    src: files/etc/servers-resolv.conf 
+    dest: /etc/resolv.conf 
+    owner: root 
+    group: root 
+    mode: 0644
+
+- name: Add rule to AppArmor
+  copy:
+    src: files/apparmor/usr.sbin.named
+    dest: /etc/apparmor.d/local/
+
+- name: Apply rule
+  shell:
+    cmd: apparmor_parser -r /etc/apparmor.d/usr.sbin.named
+
+- name: Configure ns01
+  copy:
+    src: bind-master/
+    dest: /etc/bind/
+    
+- name: Create directory
+  file:
+    path: /var/bind/dynamic
+    state: directory
+    owner: root
+    group: bind
+    mode: '0770'
+  notify: Restart named

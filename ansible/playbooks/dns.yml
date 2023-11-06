@@ -1,0 +1,8 @@
+---
+- name: Setup DNS server
+  hosts: serverDNS
+  become: True
+  gather_facts: False
+  roles:
+    - ../roles/dns
+...
