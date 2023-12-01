@@ -75,21 +75,12 @@ Vagrant.configure("2") do |config|
 
           if boxname.to_s == "frontServer"
             box.vm.network "forwarded_port", guest: 443, host: 443
-            box.vm.network "forwarded_port", guest: 80, host: 8081
           end
           
           if boxname.to_s == 'monitoringServer'
             box.vm.network "forwarded_port", guest: 9090, host: 9090
             box.vm.network "forwarded_port", guest: 3000, host: 3000 
             box.vm.network "forwarded_port", guest: 9100, host: 9100 
-          end
-
-          if boxname.to_s == 'applicationServer'
-            box.vm.network "forwarded_port", guest: 80, host: 5000
-          end
-
-          if boxname.to_s == 'dataBaseServer'
-            box.vm.network "forwarded_port", guest: 3306, host: 3306
           end
 
           box.vm.network "private_network", ip: boxconfig[:ip_addr], virtualbox__intnet: "DMZ"
