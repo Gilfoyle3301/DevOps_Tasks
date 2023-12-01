@@ -7,3 +7,4 @@ applicationServer ansible_host=192.168.77.14 ansible_private_key_file=.vagrant/m
 applicationSlave  ansible_host=192.168.77.15 ansible_private_key_file=.vagrant/machines/applicationSlave/virtualbox/private_key
 dataBaseServer    ansible_host=192.168.77.16 ansible_private_key_file=.vagrant/machines/dataBaseServer/virtualbox/private_key
 dataBaseSlave     ansible_host=192.168.77.17 ansible_private_key_file=.vagrant/machines/dataBaseSlave/virtualbox/private_key
+backupServer      ansible_host=192.168.77.18 ansible_private_key_file=.vagrant/machines/backupServer/virtualbox/private_key

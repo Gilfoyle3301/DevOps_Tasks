@@ -4,5 +4,9 @@
   become: True
   gather_facts: False
   roles:
-    - ../roles/dns
+    - role: ../roles/dns
+      vars:
+        repolabel: serverdns
+        repopass: Cae^53&gd899
+    - ../roles/prometheus-node-exporter
 ...

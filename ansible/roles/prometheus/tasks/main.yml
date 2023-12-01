@@ -1,4 +1,12 @@
 ---
+- name: Install packages
+  apt:
+    name:
+      - auditd 
+      - audispd-plugins
+    state: present
+    update_cache: true
+
 - name: download sources
   get_url:
     dest: /tmp/prometheus.tar.gz
@@ -35,3 +43,43 @@
     dest: /etc/prometheus.yml
     src: templates/prometheus.yml
   notify: restart prometheus
+
+- name: Clean artifact audisp
+  file:
+    state: absent
+    path: /etc/audisp
+
+- name: Copy audisp configs
+  copy:
+    src: 'files/etc/audisp'
+    dest: '/etc/'
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy auditd configs
+  copy:
+    src: 'files/etc/auditd.conf'
+    dest: '/etc/audit/'
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart auditd
+
+
+- name: Change rsyslog.conf
+  copy:
+    src: files/etc/rsyslog.conf
+    dest: /etc/rsyslog.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart rsyslog
+
+- name: Copy resolv.conf to the client
+  copy: 
+    src: ../../dns/files/clients/client-resolv.conf 
+    dest: /etc/resolv.conf 
+    owner: root 
+    group: root 
+    mode: 0644

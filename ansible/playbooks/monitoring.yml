@@ -5,4 +5,8 @@
   roles:
     - ../roles/prometheus
     - ../roles/prometheus-node-exporter
-    - ../roles/grafana
+    - role: ../roles/grafana
+      vars:
+        repolabel: monitoringserver
+        repopass: Cae^53&gd899
+    

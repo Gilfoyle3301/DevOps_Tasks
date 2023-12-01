@@ -4,3 +4,25 @@
     state: restarted
     enabled: yes
     
+ - name: restart rsyslog
+   systemd:
+    name: rsyslog
+    daemon_reload: yes
+    enabled: yes
+    state: restarted
+  
+ - name: restart auditd
+   systemd:
+    name: auditd
+    daemon_reload: yes
+    enabled: yes
+    state: restarted
+
+ - name: restart prometheus-nginx-exporter
+   systemd:
+    name:  prometheus-nginx-exporter
+    daemon_reload: yes
+    enabled: yes
+    state: restarted
+
+ 

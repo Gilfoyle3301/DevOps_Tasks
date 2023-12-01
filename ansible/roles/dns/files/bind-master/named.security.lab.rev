@@ -19,6 +19,7 @@ $ORIGIN 77.168.192.in-addr.arpa.
 15              IN      PTR     applicationSlave.security.lab.
 16              IN      PTR     dataBaseServer.security.lab.
 17              IN      PTR     dataBaseSlave.security.lab.
-
+10              IN      PTR     cognitoINC.security.lab.
+18              IN      PTR     backupServer.security.lab.
 
 
