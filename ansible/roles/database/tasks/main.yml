@@ -171,7 +171,7 @@
   block:
     - name: check status of borg repo
       expect:
-        command: borg info borg@192.168.77.18:/var/backups
+        command: borg info borg@192.168.77.18:/var/backups/{{ repolabel }}
         responses:
           passphrase: "Cae^53&gd899"
   rescue:
