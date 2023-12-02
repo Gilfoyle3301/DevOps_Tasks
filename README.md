@@ -106,3 +106,4 @@ Master_SSL_Verify_Server_Cert: No
 
 1. [Настроить](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/) работу Grafana на reverse proxy
 2. [Настроить](https://habr.com/ru/articles/185318/) оказоустойчивую систему на базе репликации mySQL и сетевого протокола CARP
+3. Настроить почтовое оповещение при регистрации в системе.
